@@ -7,34 +7,9 @@
     body { font-family: sans-serif; padding: 20px; text-align: center; background: #f5f5f5; }
     h1 { color: #333; }
     .stamp-grid { display: grid; grid-template-columns: repeat(8, 40px); gap: 10px; justify-content: center; margin-top: 20px; }
-    .stamp {
-      width: 40px;
-      height: 40px;
-      border-radius: 5px;
-      border: 2px solid #ccc;
-      line-height: 40px;
-      font-size: 16px;
-      background: white;
-      color: #333;
-    }
-    .stamped {
-      background: #88c057;
-      color: white;
-      border-color: #88c057;
-    }
-    button {
-      margin: 20px 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      background-color: #2196f3;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #1976d2;
-    }
+    .stamp { width: 40px; height: 40px; border-radius: 5px; border: 2px solid #ccc; line-height: 18px; font-size: 12px; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .stamped { background: #88c057; color: white; border-color: #88c057; }
+    button { margin: 20px 10px; padding: 10px 20px; font-size: 16px; }
   </style>
 </head>
 <body>
@@ -67,7 +42,7 @@
       stamps.forEach((stamped, i) => {
         const div = document.createElement("div");
         div.className = "stamp" + (stamped ? " stamped" : "");
-        div.textContent = i + 1;
+        div.innerHTML = stamped ? `<div>✓</div><div>${i + 1}</div>` : `<div>${i + 1}</div>`;
         stampGrid.appendChild(div);
       });
     }

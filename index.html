@@ -1,103 +1,88 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Poussehair スタンプカード</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; text-align: center; background: #f5f5f5; }
-    h1 { color: #333; }
-    .stamp-grid { display: grid; grid-template-columns: repeat(8, 40px); gap: 10px; justify-content: center; margin-top: 20px; }
-    .stamp { width: 40px; height: 40px; border-radius: 5px; border: 2px solid #ccc; line-height: 40px; font-size: 18px; background: white; }
-    .stamped { background: #88c057; color: white; border-color: #88c057; }
-    button { margin: 20px 10px; padding: 10px 20px; font-size: 16px; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 2em;
+      background: #f9f8f6;
+      color: #333;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 0.2em;
+    }
+    .info {
+      font-size: 1em;
+      margin-bottom: 2em;
+    }
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 40px);
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 1em;
+    }
+    .stamp {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9em;
+      transition: background 0.3s;
+    }
+    .stamp.filled {
+      background: #4caf50;
+      color: #fff;
+    }
+    .reset-btn {
+      background: #e53935;
+      color: white;
+      border: none;
+      padding: 0.5em 1em;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>Poussehair スタンプカード</h1>
+  <div class="info">1000円ごとにスタンプ1つ。40個で1000円OFF！</div>
   <div class="stamp-grid" id="stampGrid"></div>
-  <div>
-    <button onclick="resetStamps()">リセット</button>
-  </div>
+  <button class="reset-btn" onclick="resetStamps()">リセット</button>
 
   <script>
+    const totalStamps = 40;
+    const params = new URLSearchParams(window.location.search);
+    const add = parseInt(params.get("add")) || 0;
+    let stampCount = parseInt(localStorage.getItem("poussehair_stamps")) || 0;
+    stampCount = Math.min(stampCount + add, totalStamps);
+    localStorage.setItem("poussehair_stamps", stampCount);
+
     const stampGrid = document.getElementById("stampGrid");
-    const stampCount = 40;
-    let stamps = Array(stampCount).fill(false);
 
-    // URLのクエリパラメータから値を取得
-    function getQueryParam(param) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(param);
+    for (let i = 0; i < totalStamps; i++) {
+      const stamp = document.createElement("div");
+      stamp.className = "stamp" + (i < stampCount ? " filled" : "");
+      stamp.textContent = (i + 1);
+      stampGrid.appendChild(stamp);
     }
 
-    // スタンプの状態をローカルストレージから読み込み
-    function loadStamps() {
-      const saved = localStorage.getItem("poussehair-stamps");
-      if (saved) {
-        stamps = JSON.parse(saved);
-      }
-      drawStamps();
-    }
-
-    // スタンプを描画
-    function drawStamps() {
-      stampGrid.innerHTML = "";
-      stamps.forEach((stamped, i) => {
-        const div = document.createElement("div");
-        div.className = "stamp" + (stamped ? " stamped" : "");
-        div.textContent = stamped ? "✓" : "";
-        stampGrid.appendChild(div);
-      });
-    }
-
-    // スタンプをリセット
     function resetStamps() {
       if (confirm("スタンプをリセットしますか？")) {
-        stamps = Array(stampCount).fill(false);
-        localStorage.setItem("poussehair-stamps", JSON.stringify(stamps));
-        drawStamps();
+        localStorage.setItem("poussehair_stamps", "0");
+        location.reload();
       }
     }
-
-    // URLパラメータに応じてスタンプを追加orリセットする
-    function applyQueryParams() {
-      const add = parseInt(getQueryParam('add'));
-      const reset = getQueryParam('reset');
-
-      if (reset === '1') {
-        if (confirm('スタンプカードをリセットしますか？')) {
-          stamps = Array(stampCount).fill(false);
-          localStorage.setItem('poussehair-stamps', JSON.stringify(stamps));
-          drawStamps();
-          alert('スタンプカードをリセットしました。');
-          // URLからパラメータを消すためにリロード（履歴に残るので後で戻れます）
-          history.replaceState(null, '', location.pathname);
-        }
-      } else if (!isNaN(add) && add > 0) {
-        let added = 0;
-        for (let i = 0; i < add; i++) {
-          const idx = stamps.findIndex(s => s === false);
-          if (idx === -1) break; // 満タン
-          stamps[idx] = true;
-          added++;
-        }
-        if (added > 0) {
-          localStorage.setItem('poussehair-stamps', JSON.stringify(stamps));
-          drawStamps();
-          alert(`${added}個スタンプを押しました！`);
-          history.replaceState(null, '', location.pathname);
-        } else {
-          alert('スタンプはすでに満タンです。');
-          history.replaceState(null, '', location.pathname);
-        }
-      }
-    }
-
-    // ページ読み込み時に動作
-    window.onload = () => {
-      loadStamps();
-      applyQueryParams();
-    };
   </script>
 </body>
 </html>
+

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Poussehair スタンプカード</title>
   <style>
     body { font-family: sans-serif; padding: 20px; text-align: center; background: #f5f5f5; }
@@ -24,6 +24,13 @@
     const stampCount = 40;
     let stamps = Array(stampCount).fill(false);
 
+    // URLのクエリパラメータから値を取得
+    function getQueryParam(param) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(param);
+    }
+
+    // スタンプの状態をローカルストレージから読み込み
     function loadStamps() {
       const saved = localStorage.getItem("poussehair-stamps");
       if (saved) {
@@ -32,6 +39,7 @@
       drawStamps();
     }
 
+    // スタンプを描画
     function drawStamps() {
       stampGrid.innerHTML = "";
       stamps.forEach((stamped, i) => {
@@ -42,6 +50,7 @@
       });
     }
 
+    // スタンプをリセット
     function resetStamps() {
       if (confirm("スタンプをリセットしますか？")) {
         stamps = Array(stampCount).fill(false);
@@ -50,7 +59,45 @@
       }
     }
 
-    loadStamps();
+    // URLパラメータに応じてスタンプを追加orリセットする
+    function applyQueryParams() {
+      const add = parseInt(getQueryParam('add'));
+      const reset = getQueryParam('reset');
+
+      if (reset === '1') {
+        if (confirm('スタンプカードをリセットしますか？')) {
+          stamps = Array(stampCount).fill(false);
+          localStorage.setItem('poussehair-stamps', JSON.stringify(stamps));
+          drawStamps();
+          alert('スタンプカードをリセットしました。');
+          // URLからパラメータを消すためにリロード（履歴に残るので後で戻れます）
+          history.replaceState(null, '', location.pathname);
+        }
+      } else if (!isNaN(add) && add > 0) {
+        let added = 0;
+        for (let i = 0; i < add; i++) {
+          const idx = stamps.findIndex(s => s === false);
+          if (idx === -1) break; // 満タン
+          stamps[idx] = true;
+          added++;
+        }
+        if (added > 0) {
+          localStorage.setItem('poussehair-stamps', JSON.stringify(stamps));
+          drawStamps();
+          alert(`${added}個スタンプを押しました！`);
+          history.replaceState(null, '', location.pathname);
+        } else {
+          alert('スタンプはすでに満タンです。');
+          history.replaceState(null, '', location.pathname);
+        }
+      }
+    }
+
+    // ページ読み込み時に動作
+    window.onload = () => {
+      loadStamps();
+      applyQueryParams();
+    };
   </script>
 </body>
 </html>

@@ -3,118 +3,151 @@
 <head>
   <meta charset="UTF-8" />
   <title>Poussehair スタンプカード</title>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
+
     body {
-      font-family: 'Baloo 2', cursive;
-      padding: 30px;
+      font-family: 'Kosugi Maru', sans-serif;
+      background: #fff0f5;
+      padding: 20px;
+      margin: 0;
       text-align: center;
-      background: #fef6f9;
-      font-size: 18px;
     }
+
     h1 {
-      font-size: 32px;
-      color: #d63384;
-      margin-bottom: 0;
+      font-size: 2em;
+      color: #ff69b4;
+      margin-bottom: 0.3em;
+      line-height: 1.2em;
     }
-    .subheading {
-      font-size: 18px;
-      margin-top: 5px;
+
+    .subtext {
+      font-size: 1.2em;
       margin-bottom: 20px;
       color: #444;
     }
-    .stamp-grid, .bonus-grid {
+
+    .stamp-grid {
       display: grid;
-      grid-template-columns: repeat(8, 50px);
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: 8px;
       justify-content: center;
-      margin-top: 25px;
+      margin-bottom: 30px;
     }
-    .bonus-grid {
-      grid-template-columns: repeat(5, 50px);
-    }
-    .stamp, .bonus {
+
+    .stamp {
       width: 50px;
       height: 50px;
-      border-radius: 10px;
-      border: 3px solid #ccc;
-      line-height: 50px;
-      font-size: 20px;
       background: white;
-      box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .stamped {
       background: #88c057;
       color: white;
       border-color: #88c057;
     }
-    .special {
+
+    .stamp.final {
       background: gold;
-      color: #fff;
+      border: 2px solid red;
+      color: red;
       font-weight: bold;
-      border-color: orange;
+      position: relative;
     }
-    .buttons {
-      margin: 25px 10px;
-    }
-    button {
-      padding: 12px 24px;
+
+    .stamp.final::after {
+      content: "🎉";
+      position: absolute;
+      top: -10px;
+      right: -10px;
       font-size: 16px;
+    }
+
+    .bonus-grid {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .bonus {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      line-height: 50px;
+      background: white;
+    }
+
+    .bonus.stamped {
+      background: red;
+      color: white;
+      border-color: red;
+      font-weight: bold;
+      animation: pop 0.6s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
       border: none;
-      background: #ff8fb1;
+      background: #ff69b4;
       color: white;
       border-radius: 8px;
       cursor: pointer;
-      box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+      margin: 10px;
     }
-    button:hover {
-      background: #e86c91;
-    }
-    .bonus-label {
-      margin-top: 30px;
-      font-size: 20px;
-      color: #d63384;
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.5em; }
+      .stamp, .bonus { width: 40px; height: 40px; font-size: 14px; }
     }
   </style>
 </head>
 <body>
   <h1>Poussehair<br>スタンプカード</h1>
-  <div class="subheading">1000円に1つスタンプ♪ 40個で1,000円OFF！</div>
+  <div class="subtext">1000円ごとに1スタンプ。<br>40個で1,000円OFF！</div>
 
   <div class="stamp-grid" id="stampGrid"></div>
-
-  <div class="buttons">
-    <button onclick="resetStamps()">スタンプリセット</button>
-  </div>
-
-  <div class="bonus-label">🎁 特典スタンプ</div>
   <div class="bonus-grid" id="bonusGrid"></div>
 
-  <div class="buttons">
+  <div>
+    <button onclick="resetStamps()">リセット</button>
     <button onclick="resetBonus()">特典リセット</button>
   </div>
 
   <script>
     const stampCount = 40;
-    const bonusMax = 5;
+    const bonusCount = 5;
     let stamps = Array(stampCount).fill(false);
-    let bonusStamps = Array(bonusMax).fill(false);
+    let bonus = Array(bonusCount).fill(false);
 
     const stampGrid = document.getElementById("stampGrid");
     const bonusGrid = document.getElementById("bonusGrid");
 
-    function getQueryParam(param) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(param);
+    function loadData() {
+      const savedStamps = localStorage.getItem("poussehair-stamps");
+      const savedBonus = localStorage.getItem("poussehair-bonus");
+      if (savedStamps) stamps = JSON.parse(savedStamps);
+      if (savedBonus) bonus = JSON.parse(savedBonus);
     }
 
-    function loadStamps() {
-      const saved = localStorage.getItem("poussehair-stamps");
-      const bonusSaved = localStorage.getItem("poussehair-bonus");
-      if (saved) stamps = JSON.parse(saved);
-      if (bonusSaved) bonusStamps = JSON.parse(bonusSaved);
-      drawStamps();
-      drawBonus();
+    function saveData() {
+      localStorage.setItem("poussehair-stamps", JSON.stringify(stamps));
+      localStorage.setItem("poussehair-bonus", JSON.stringify(bonus));
     }
 
     function drawStamps() {
@@ -122,18 +155,18 @@
       stamps.forEach((stamped, i) => {
         const div = document.createElement("div");
         div.className = "stamp" + (stamped ? " stamped" : "");
-        if (i === 39) div.className += " special";
         div.textContent = i + 1;
+        if (i === 39 && stamped) div.classList.add("final");
         stampGrid.appendChild(div);
       });
     }
 
     function drawBonus() {
       bonusGrid.innerHTML = "";
-      bonusStamps.forEach((stamped, i) => {
+      bonus.forEach((stamped, i) => {
         const div = document.createElement("div");
         div.className = "bonus" + (stamped ? " stamped" : "");
-        div.textContent = stamped ? "✓" : i + 1;
+        div.textContent = stamped ? "★" : "";
         bonusGrid.appendChild(div);
       });
     }
@@ -141,44 +174,24 @@
     function resetStamps() {
       if (confirm("スタンプをリセットしますか？")) {
         stamps = Array(stampCount).fill(false);
-        localStorage.setItem("poussehair-stamps", JSON.stringify(stamps));
+        saveData();
         drawStamps();
       }
     }
 
     function resetBonus() {
       if (confirm("特典スタンプをリセットしますか？")) {
-        bonusStamps = Array(bonusMax).fill(false);
-        localStorage.setItem("poussehair-bonus", JSON.stringify(bonusStamps));
+        bonus = Array(bonusCount).fill(false);
+        saveData();
         drawBonus();
       }
     }
 
-    function addBonusIfFull() {
-      if (stamps.every(s => s)) {
-        const idx = bonusStamps.findIndex(b => b === false);
-        if (idx !== -1) {
-          bonusStamps[idx] = true;
-          localStorage.setItem("poussehair-bonus", JSON.stringify(bonusStamps));
-          drawBonus();
-          alert("🎉 40個達成！特典スタンプが1つ追加されました！");
-        }
-      }
-    }
-
     function applyQueryParams() {
-      const add = parseInt(getQueryParam('add'));
-      const reset = getQueryParam('reset');
+      const params = new URLSearchParams(window.location.search);
+      const add = parseInt(params.get("add"));
 
-      if (reset === '1') {
-        if (confirm('スタンプカードをリセットしますか？')) {
-          stamps = Array(stampCount).fill(false);
-          localStorage.setItem('poussehair-stamps', JSON.stringify(stamps));
-          drawStamps();
-          alert('スタンプカードをリセットしました。');
-          history.replaceState(null, '', location.pathname);
-        }
-      } else if (!isNaN(add) && add > 0) {
+      if (!isNaN(add) && add > 0) {
         let added = 0;
         for (let i = 0; i < add; i++) {
           const idx = stamps.findIndex(s => s === false);
@@ -186,20 +199,27 @@
           stamps[idx] = true;
           added++;
         }
-        if (added > 0) {
-          localStorage.setItem('poussehair-stamps', JSON.stringify(stamps));
-          drawStamps();
-          addBonusIfFull();
-          alert(`${added} 個スタンプを押しました！`);
-        } else {
-          alert('スタンプはすでに満タンです。');
+
+        if (stamps.filter(s => s).length === stampCount) {
+          const bonusIdx = bonus.findIndex(b => b === false);
+          if (bonusIdx !== -1) {
+            bonus[bonusIdx] = true;
+            alert("特典スタンプが1つ追加されました🎉");
+          }
         }
+
+        saveData();
+        drawStamps();
+        drawBonus();
+        alert(`${added} 個スタンプを押しました！`);
         history.replaceState(null, '', location.pathname);
       }
     }
 
     window.onload = () => {
-      loadStamps();
+      loadData();
+      drawStamps();
+      drawBonus();
       applyQueryParams();
     };
   </script>
